@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Weekend Ideas</title>
+<style>
+  :root {
+    --bg: #f6f5f1; --card: #ffffff; --text: #1d1d1b; --muted: #66645e;
+    --line: #dddad2; --accent: #2f6f4f; --accent-text: #ffffff;
+    --chip: #ecebe5; --warn-bg: #fff4d6; --warn-line: #e8c96a; --danger: #a33a2a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #161715; --card: #212320; --text: #ecebe6; --muted: #a3a29b;
+      --line: #383a35; --accent: #6fbf8f; --accent-text: #10170f;
+      --chip: #2c2e2a; --warn-bg: #3a3220; --warn-line: #7a6630; --danger: #f08b77;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 17px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 16px 16px 64px; }
+  h1 { font-size: 1.6rem; margin: 8px 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 16px; }
+  fieldset { border: 0; padding: 0; margin: 0 0 18px; }
+  legend { font-weight: 650; margin-bottom: 8px; padding: 0; }
+  .opts { display: flex; flex-wrap: wrap; gap: 8px; }
+  .opt {
+    flex: 1 1 auto; min-width: 72px; min-height: 52px; padding: 10px 14px;
+    font: inherit; font-weight: 600; color: var(--text);
+    background: var(--card); border: 2px solid var(--line); border-radius: 12px;
+    cursor: pointer; touch-action: manipulation;
+  }
+  .opt[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+  .opt:focus-visible, .btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .go {
+    width: 100%; min-height: 60px; font: inherit; font-size: 1.15rem; font-weight: 700;
+    background: var(--accent); color: var(--accent-text); border: 0; border-radius: 14px; cursor: pointer;
+  }
+  .status { margin: 20px 0 12px; font-weight: 600; }
+  .stale { color: var(--danger); font-weight: 600; }
+  .notice {
+    background: var(--warn-bg); border: 1px solid var(--warn-line);
+    border-radius: 12px; padding: 12px 14px; margin: 0 0 14px;
+  }
+  .notice ul { margin: 6px 0 0; padding-left: 20px; }
+  .cards { display: grid; gap: 12px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+  .card h2 { font-size: 1.2rem; margin: 0 0 6px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .chip { background: var(--chip); border-radius: 999px; padding: 2px 10px; font-size: .85rem; color: var(--muted); }
+  dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; margin: 0 0 10px; }
+  dt { color: var(--muted); }
+  dd { margin: 0; }
+  .notes { margin: 0 0 12px; }
+  .actions { display: flex; gap: 8px; }
+  .btn {
+    flex: 1; min-height: 48px; font: inherit; font-weight: 600; border-radius: 10px; cursor: pointer;
+    background: transparent; color: var(--text); border: 2px solid var(--line);
+  }
+  .btn.primary { border-color: var(--accent); color: var(--accent); }
+  .row { display: flex; gap: 8px; margin-top: 14px; }
+  .row .btn { flex: 1; }
+  .done-list { margin-top: 28px; }
+  .done-list li { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--line); }
+  .done-list ul { list-style: none; padding: 0; margin: 8px 0; }
+  .done-list .btn { flex: 0 0 auto; min-height: 40px; padding: 0 14px; }
+  .toast {
+    position: fixed; left: 16px; right: 16px; bottom: 16px; max-width: 560px; margin: 0 auto;
+    background: var(--text); color: var(--bg); border-radius: 12px; padding: 12px 14px;
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  }
+  .toast button { font: inherit; font-weight: 700; background: none; border: 0; color: var(--bg); text-decoration: underline; min-height: 40px; cursor: pointer; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Weekend ideas</h1>
+  <p class="sub">Set today's conditions, then tap the button.</p>
+
+  <fieldset><legend>Weather</legend><div class="opts" data-key="weather">
+    <button class="opt" data-v="dry">Dry</button>
+    <button class="opt" data-v="wet">Wet</button>
+  </div></fieldset>
+
+  <fieldset><legend>Time available</legend><div class="opts" data-key="time">
+    <button class="opt" data-v="2">Up to 2 hrs</button>
+    <button class="opt" data-v="half">Half day</button>
+    <button class="opt" data-v="full">Full day</button>
+  </div></fieldset>
+
+  <fieldset><legend>Max budget</legend><div class="opts" data-key="budget">
+    <button class="opt" data-v="0">Free</button>
+    <button class="opt" data-v="1">£</button>
+    <button class="opt" data-v="2">££</button>
+    <button class="opt" data-v="3">£££</button>
+  </div></fieldset>
+
+  <fieldset><legend>Travel</legend><div class="opts" data-key="travel">
+    <button class="opt" data-v="local">Stay local</button>
+    <button class="opt" data-v="car15">Car 15 min</button>
+    <button class="opt" data-v="car30">Car 30 min</button>
+    <button class="opt" data-v="car60">Car 60 min</button>
+    <button class="opt" data-v="car90">Car 90 min</button>
+    <button class="opt" data-v="train">Train</button>
+  </div></fieldset>
+
+  <fieldset><legend>Dog coming?</legend><div class="opts" data-key="dog">
+    <button class="opt" data-v="yes">Yes</button>
+    <button class="opt" data-v="no">No</button>
+  </div></fieldset>
+
+  <fieldset><legend>Hide places we've done before</legend><div class="opts" data-key="hideDone">
+    <button class="opt" data-v="on">Hide</button>
+    <button class="opt" data-v="off">Show</button>
+  </div></fieldset>
+
+  <button class="go" id="go">Give me 5 ideas</button>
+
+  <section id="results" hidden>
+    <p class="status" id="status"></p>
+    <div id="notice"></div>
+    <div class="cards" id="cards"></div>
+    <div class="row"><button class="btn primary" id="shuffle">Shuffle</button></div>
+  </section>
+
+  <section class="done-list">
+    <button class="btn" id="toggleDone">Show my done list</button>
+    <div id="doneList" hidden></div>
+  </section>
+</main>
+
+<div class="toast" id="toast" hidden><span id="toastMsg"></span><button id="toastUndo">Undo</button></div>
+
+<!-- The ideas data. This block is a copy of ideas.csv; build.py replaces everything between the markers. -->
+<script type="text/csv" id="ideas-csv">
+<!-- CSV-START -->
+Idea,Type,Indoor/Outdoor,Time needed,Cost (family of 4),Car time from Rishton (approx),Parking,Train option,Dog-friendly,Suits both kids?,Done before,Notes
+"Witton Country Park, Blackburn",Park & walk,Outdoor,2–3 hrs,Free,10 min,Car parks on site,No (bus/taxi from Blackburn),Yes,Yes,,"Woods, play areas, visitor centre."
+Darwen Tower walk,Hill walk,Outdoor,2–3 hrs,Free,20 min,"Small car parks (Sunnyhurst, Roddlesworth)","Darwen station, then walk up",Yes,Yes,,Climb the tower for the view.
+Pendle Hill from Barley,Hill walk,Outdoor,Half day,Free,30 min,Pay car park in Barley,No,Yes,Yes,,Steep but short. Café in Barley.
+"Singing Ringing Tree, Burnley",Landmark walk,Outdoor,1–2 hrs,Free,20 min,Small car park at Crown Point,No,Yes,Yes,,Panopticon sculpture. Pair with Towneley.
+"Halo, Haslingden",Landmark walk,Outdoor,1–2 hrs,Free,15 min,Parking near Top o' Slate,No,Yes,Yes,,Lit up after dark – good winter evening trip.
+Wycoller & the Atom,Village & walk,Outdoor,Half day,Free,35 min,"Country park car park, walk in",No,Yes,Yes,,"Packhorse bridges, ruined hall, Atom sculpture."
+"Towneley Hall & Park, Burnley",Hall & park,Mixed,Half day,£,20 min,Car park on site,"Burnley, then bus/walk",Yes (park),Partly,,Museum in the hall plus a big park. Check hall opening.
+Clitheroe Castle & Museum,Castle & museum,Mixed,2–3 hrs,£,25 min,Town centre pay car parks,Yes – Clitheroe (via Blackburn),Grounds only,Yes,,"Small keep, good views, town for lunch."
+Beacon Fell Country Park,Fell & forest,Outdoor,2–3 hrs,Free,40 min,Pay car park on site,No,Yes,Yes,,"Easy summit, sculpture trail."
+"Brockholes Nature Reserve, Preston",Nature reserve,Outdoor,Half day,Free,25 min,Pay car park on site,No,Check,Partly,,Floating visitor village. Check dog policy.
+"Martin Mere WWT, Burscough",Wetland centre,Mixed,Half day,££,50 min,Car park on site,Possible (long),No,Partly,,Better for the 10-year-old. Check feeding times.
+Gisburn Forest,Forest / bike trails,Outdoor,Half day,Free,45 min,Pay car park (Stephen Park),No,Yes,Yes,,Graded bike trails. Bring bikes or check hire.
+"Lee Quarry, Bacup",Bike skills / walk,Outdoor,2–3 hrs,Free,30 min,Small car park,No,Yes,Yes,,Bike skills area – good for a teenager.
+Rishton Reservoir & canal,Local walk,Outdoor,1–2 hrs,Free,0 (walk),n/a,n/a,Yes,Partly,,Zero-effort option with the dog.
+Leeds–Liverpool canal bike ride,Cycle ride,Outdoor,2–4 hrs,Free,0 (from home),n/a,n/a,Yes,Yes,,Towpath east or west. Pick a café stop as the target.
+Hurst Green Tolkien Trail,Walk,Outdoor,Half day,Free,30 min,Village parking – limited,No,Yes,Yes,,Loop along the Ribble past Stonyhurst.
+Ingleton Waterfalls Trail,Waterfall walk,Outdoor,Half day,££,1 hr,Parking at entrance (check charge),No,Yes (on lead),Yes,,4–5 mile circuit with an entry fee.
+"White Scar Cave, Ingleton",Show cave,Indoor,2 hrs,££,1 hr,Car park on site,No,No,Yes,,Guided tour. Combine with the waterfalls trail.
+Malham Cove & Gordale Scar,Walk / landmark,Outdoor,Full day,Free,55 min,"National Park pay car park, Malham – fills early",No,Yes,Yes,,Limestone pavement on top. Go early.
+Gaping Gill winch descent,Cave descent,Outdoor,Full day,££,1 hr,Clapham village car park,No,Check,Yes (check age limits),,"Only on club meet dates, usually bank holidays. Book ahead."
+Stump Cross Caverns,Show cave,Indoor,2 hrs,££,1 hr 15,Car park on site,No,Check,Yes,,Near Pateley Bridge.
+"Speedwell & Peak Caverns, Castleton",Show caves,Indoor,Half day,££,1 hr 30,Pay car park in Castleton,Possible (Hope station),No,Yes,,Speedwell is an underground boat trip.
+"Mam Tor, Castleton",Hill walk,Outdoor,Half day,Free,1 hr 30,NT pay car park,No,Yes,Yes,,Combine with the caverns.
+Bolton Abbey & the Strid,Riverside walk,Outdoor,Half–full day,£,50 min,Estate car parks (charge per car),No,Yes,Yes,,Stepping stones. Keep well back from the Strid.
+Embsay & Bolton Abbey Steam Railway,Heritage railway,Mixed,Half day,££,45 min,Car park at Embsay station,No,Check,Partly,,Check running dates.
+East Lancashire Railway,Heritage railway,Mixed,Half day,££,25 min (Rawtenstall),Car park at Rawtenstall station,No,Check,Partly,,Bury–Rawtenstall steam trains. Check timetable.
+Skipton Castle,Castle,Mixed,2–3 hrs,££,40 min,Town pay car parks,Check,Check,Yes,,Well-preserved medieval castle plus market town.
+Lancaster Castle,Castle tour,Indoor,2 hrs,£,45 min,City pay car parks,Yes – Lancaster (via Preston),No,Yes,,Guided tours of the old court and prison.
+"Williamson Park, Lancaster",Park & attraction,Mixed,2–3 hrs,Free–£,45 min,Pay car park on site,"Lancaster, then taxi",Yes (park),Partly,,Ashton Memorial views. Small charge for the butterfly house.
+Blackpool Zoo,Zoo,Outdoor,Full day,£££,45 min,Car park on site (charge),"Blackpool North, then bus",No,Yes,,
+Chester Zoo,Zoo,Outdoor,Full day,£££,1 hr 15,Car park on site,"Possible (Chester, then bus)",No,Yes,,Big site – a full day. Online tickets usually cheaper.
+Knowsley Safari,Safari park,Mixed,Full day,£££,50 min,Drive-through plus car park on site,No,No (check kennels),Yes,,Baboon section can damage car trim – there's a bypass route.
+Blackpool Pleasure Beach,Theme park,Outdoor,Full day,£££,45 min,Pay car parks nearby,Yes – Pleasure Beach station (via Preston),No,Yes,,Check season dates. Big rides for the 14-year-old.
+"Sandcastle Waterpark, Blackpool",Waterpark,Indoor,Half day,£££,45 min,Pay car parks nearby,Yes – Pleasure Beach station (via Preston),No,Yes,,Good rainy-day option.
+Blackpool Tower attractions,Attraction,Indoor,Half–full day,£££,45 min,Town pay car parks,Yes – Blackpool North,No,Yes,"Partly (Eye + Circus, Aug 2026)",Other Tower attractions not yet done.
+Formby red squirrels & beach,Beach & woods,Outdoor,Half day,£,1 hr,NT pay car park,Yes – Freshfield (via Liverpool),Yes,Yes,,Dunes and pinewoods.
+Crosby Beach – Another Place,Beach & sculpture,Outdoor,2–3 hrs,Free,55 min,Seafront car parks,Yes – Blundellsands & Crosby (via Liverpool),Yes,Yes,,Antony Gormley's iron figures along the beach.
+Lytham & St Annes,Seaside,Outdoor,Half day,Free–£,45 min,Seafront pay car parks,Yes – Lytham / St Annes (via Preston),Yes,Partly,,"Windmill, green and beach. Quieter than Blackpool."
+"Haigh Woodland Park, Wigan",Park,Outdoor,Half day,Free,40 min,Pay car park on site,No,Yes,Yes,,Woods and play areas. Go Ape on site.
+"Go Ape, Haigh Woodland Park",Treetop adventure,Outdoor,2–3 hrs,£££,40 min,Haigh car park,No,No,Yes (check height limits),,Book ahead.
+"Hollingworth Lake, Littleborough",Lake walk,Outdoor,2–3 hrs,Free,40 min,Visitor centre pay car park,Possible (Smithy Bridge),Yes,Partly,,
+Jumbles Country Park,Reservoir walk,Outdoor,2 hrs,Free,30 min,Pay car park,No,Yes,Partly,,
+"National Football Museum, Manchester",Museum,Indoor,2–3 hrs,££,45 min,City centre pay car parks,Yes – Manchester Victoria (next door),No,Yes,,Hands-on football games. Check prices.
+"IWM North, Salford Quays",Museum,Indoor,2–3 hrs,Free,45 min,Pay car parks at the Quays,"Yes – Victoria, then tram",No,Yes,,
+Manchester Museum,Museum,Indoor,2–3 hrs,Free,45 min,City pay car parks,Yes – Oxford Road,No,Yes,,Dinosaurs and vivarium.
+"Science and Industry Museum, Manchester",Museum,Indoor,Half day,Free,45 min,City pay car parks,Yes – Deansgate,No,Yes,Yes,Already done (incl. Power Up).
+"National Science and Media Museum, Bradford",Museum,Indoor,Half day,Free,1 hr,City pay car parks,Check,No,Yes,,Free galleries. IMAX extra.
+"Royal Armouries, Leeds",Museum,Indoor,Half day,Free,1 hr,Leeds Dock car park,"Yes – Leeds, then walk",No,Yes,,Leeds visited before – check whether this was part of it.
+Jodrell Bank,Science attraction,Mixed,Half day,££,1 hr,Car park on site,No,No,Yes,,The Lovell Telescope up close.
+Bowland Wild Boar Park,Farm park,Outdoor,Half day,££,35 min,Car park on site,No,Check,Partly,,Better for the 10-year-old. Check it's open.
+Football match (Accrington Stanley / Blackburn Rovers),Live sport,Outdoor,Half day,££–£££,15 min,Matchday parking – limited,Yes – Accrington / Blackburn,No,Yes,,Check fixtures and kids' prices.
+Ice skating – Blackburn Arena,Activity,Indoor,2 hrs,££,15 min,Car park on site,No,No,Yes,,Check public session times.
+Trampoline park,Activity,Indoor,1–2 hrs,££,15–30 min,Usually on site,Varies,No,Yes,,Find the nearest.
+Indoor climbing / bouldering,Activity,Indoor,2 hrs,££,20–45 min,Usually on site,Varies,No,Yes,,Beginner taster sessions available at most walls.
+Escape room,Activity,Indoor,1–2 hrs,£££,15–45 min,Varies,Varies,No,Yes,,Works well for mixed ages.
+Ten-pin bowling,Activity,Indoor,2 hrs,££,15 min,Usually on site,Varies,No,Yes,,
+Crazy golf / laser tag,Activity,Indoor,1–2 hrs,££,15–45 min,Varies,Varies,No,Yes,,
+Swimming – local leisure centre,Activity,Indoor,2 hrs,£,10–15 min,On site,n/a,No,Yes,,
+Cinema + food,Activity,Indoor,3 hrs,££,15 min,Retail park parking,n/a,No,Yes,,Let the kids pick the film.
+Geocaching,Treasure hunt,Outdoor,1–3 hrs,Free,0 (local),n/a,n/a,Yes,Partly,,Free app with caches near home.
+Charity shop challenge,Town trip,Mixed,2 hrs,£,10–20 min,Town car parks,Yes – Accrington / Blackburn,No,Yes,,"£5 each, best find wins."
+Board / card game tournament,At home,Indoor,2–3 hrs,Free,0 (home),n/a,n/a,Yes,Yes,,Loser makes the drinks.
+Family cook-off,At home,Indoor,2–3 hrs,£,0 (home),n/a,n/a,Yes,Yes,,"Each person picks a dish, the others score it."
+Kids plan the day,Wildcard,Mixed,Varies,Set a budget,Set a radius,Varies,Varies,Varies,Yes,,Give them a budget and a radius; they choose and plan it.
+<!-- CSV-END -->
+</script>
+
+<script>
+"use strict";
+
+/* ---------- Reading the CSV ---------- */
+function parseCSV(text) {
+  const rows = []; let row = []; let field = ""; let inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQuotes) {
+      if (c === '"' && text[i + 1] === '"') { field += '"'; i++; }
+      else if (c === '"') inQuotes = false;
+      else field += c;
+    } else if (c === '"') inQuotes = true;
+    else if (c === ",") { row.push(field); field = ""; }
+    else if (c === "\n" || c === "\r") {
+      if (c === "\r" && text[i + 1] === "\n") i++;
+      row.push(field); field = "";
+      if (row.some(f => f.trim() !== "")) rows.push(row);
+      row = [];
+    } else field += c;
+  }
+  row.push(field);
+  if (row.some(f => f.trim() !== "")) rows.push(row);
+  return rows;
+}
+
+function loadIdeas() {
+  let raw = document.getElementById("ideas-csv").textContent;
+  raw = raw.replace("<!-- CSV-START -->", "").replace("<!-- CSV-END -->", "").replace(/^﻿/, "").trim();
+  const [header, ...rows] = parseCSV(raw);
+  const h = header.map(s => s.trim());
+  const col = name => h.findIndex(x => x.toLowerCase().startsWith(name.toLowerCase()));
+  const C = {
+    idea: col("Idea"), type: col("Type"), io: col("Indoor"), time: col("Time"), cost: col("Cost"),
+    car: col("Car time"), parking: col("Parking"), train: col("Train"), dog: col("Dog"),
+    kids: col("Suits"), done: col("Done"), notes: col("Notes"),
+  };
+  const get = (r, k) => (C[k] >= 0 && r[C[k]] !== undefined ? r[C[k]].trim() : "");
+  return rows.map(r => {
+    const it = {};
+    for (const k in C) it[k] = get(r, k);
+    it.minHours = parseTime(it.time);
+    it.costLevel = parseCost(it.cost);
+    it.carMins = parseCar(it.car);
+    it.trainOK = parseTrain(it.train);
+    it.dogOK = !/^no\b/i.test(it.dog);
+    it.csvDone = /^yes\b/i.test(it.done);
+    return it;
+  }).filter(it => it.idea);
+}
+
+/* ---------- Interpreting the free-text values ---------- */
+// All of these return null for "Varies", "Check", "Set a ..." etc, which always counts as a possible match.
+const norm = s => s.toLowerCase().replace(/[‒-―]/g, "-");
+
+function parseTime(s) {            // shortest likely time, in hours
+  const t = norm(s);
+  if (t.startsWith("half")) return 4;  // "Half day", "Half-full day"
+  if (t.startsWith("full")) return 8;
+  const m = t.match(/(\d+(?:\.\d+)?)/);
+  return m ? parseFloat(m[1]) : null;
+}
+
+function parseCost(s) {            // cheapest end: Free=0, £=1, ££=2, £££=3
+  const t = norm(s).trim();
+  if (t.startsWith("free")) return 0;
+  const m = t.match(/^£+/);
+  return m ? m[0].length : null;
+}
+
+function parseCar(s) {             // shortest likely drive, in minutes
+  const t = norm(s);
+  const hr = t.match(/^(\d+)\s*hrs?\s*(\d+)?/);
+  if (hr) return parseInt(hr[1], 10) * 60 + (hr[2] ? parseInt(hr[2], 10) : 0);
+  const m = t.match(/^(\d+)/);
+  return m ? parseInt(m[1], 10) : null;
+}
+
+function parseTrain(s) {           // "No ..." and "n/a" are the only exclusions
+  const t = norm(s).trim();
+  return !(t === "" || t === "n/a" || /^no\b/.test(t));
+}
+
+/* ---------- Filters ---------- */
+const TIME_LIMIT = { "2": 2, half: 4, full: Infinity };
+const CAR_LIMIT = { local: 15, car15: 15, car30: 30, car60: 60, car90: 90 };
+
+function matches(it, f, done) {
+  if (f.weather === "wet" && !/indoor|mixed/i.test(it.io)) return false;
+  if (it.minHours !== null && it.minHours > TIME_LIMIT[f.time]) return false;
+  if (it.costLevel !== null && it.costLevel > Number(f.budget)) return false;
+  if (f.travel === "train") { if (!it.trainOK) return false; }
+  else if (it.carMins !== null && it.carMins > CAR_LIMIT[f.travel]) return false;
+  if (f.dog === "yes" && !it.dogOK) return false;
+  if (f.hideDone === "on" && isDone(it, done)) return false;
+  return true;
+}
+
+const LABELS = {
+  weather: { dry: "Dry", wet: "Wet" },
+  time: { "2": "Up to 2 hrs", half: "Half day", full: "Full day" },
+  budget: { "0": "Free", "1": "£", "2": "££", "3": "£££" },
+  travel: { local: "Stay local", car15: "Car 15 min", car30: "Car 30 min", car60: "Car 60 min", car90: "Car 90 min", train: "Train" },
+};
+// For each filter, the looser settings worth trying when there are too few matches.
+function loosenings(f) {
+  const out = [];
+  if (f.weather === "wet") out.push(["weather", "dry", "Weather: Dry"]);
+  const times = ["2", "half", "full"];
+  times.slice(times.indexOf(f.time) + 1).forEach(v => out.push(["time", v, "Time: " + LABELS.time[v]]));
+  for (let b = Number(f.budget) + 1; b <= 3; b++) out.push(["budget", String(b), "Budget: " + LABELS.budget[b]]);
+  const cars = ["local", "car15", "car30", "car60", "car90"];
+  if (f.travel === "train") cars.forEach(v => out.push(["travel", v, "Travel: " + LABELS.travel[v] + " instead of train"]));
+  else cars.slice(cars.indexOf(f.travel) + 1).forEach(v => out.push(["travel", v, "Travel: " + LABELS.travel[v]]));
+  if (f.dog === "yes") out.push(["dog", "no", "Leave the dog at home"]);
+  if (f.hideDone === "on") out.push(["hideDone", "off", "Show places you've done before"]);
+  return out;
+}
+
+/* ---------- Saved in this browser ---------- */
+const store = {
+  get(key, fallback) { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch (e) { return fallback; } },
+  set(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {} },
+};
+const DEFAULTS = { weather: "dry", time: "half", budget: "2", travel: "car30", dog: "no", hideDone: "on" };
+let filters = Object.assign({}, DEFAULTS, store.get("wi-filters", {}));
+let doneSet = new Set(store.get("wi-done", []));
+const saveDone = () => store.set("wi-done", [...doneSet]);
+const isDone = (it, done) => it.csvDone || done.has(it.idea);
+
+/* ---------- State ---------- */
+const IDEAS = loadIdeas();
+let pool = [];        // ideas matching the current filters
+let shown = [];       // ideas on screen
+let vetoed = new Set();
+let resultsFilters = null;
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+/* ---------- Filter buttons ---------- */
+function paintButtons() {
+  document.querySelectorAll(".opts").forEach(g => {
+    g.querySelectorAll(".opt").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === filters[g.dataset.key])));
+  });
+}
+document.querySelectorAll(".opts").forEach(g => {
+  g.addEventListener("click", e => {
+    const b = e.target.closest(".opt"); if (!b) return;
+    filters[g.dataset.key] = b.dataset.v;
+    store.set("wi-filters", filters);
+    paintButtons();
+    if (resultsFilters) $("status").innerHTML = statusText() + ' <span class="stale">Settings changed: tap "Give me 5 ideas" again.</span>';
+  });
+});
+
+/* ---------- Results ---------- */
+function computePool() { return IDEAS.filter(it => matches(it, filters, doneSet)); }
+
+function fresh(avoidCurrent) {
+  pool = computePool();
+  vetoed = new Set();
+  const current = new Set(shown.map(it => it.idea));
+  let order = shuffle(pool);
+  // On Shuffle, prefer ideas that weren't just on screen.
+  if (avoidCurrent && pool.length - current.size >= 5) order = order.filter(it => !current.has(it.idea));
+  shown = order.slice(0, 5);
+  resultsFilters = Object.assign({}, filters);
+  render();
+}
+
+function statusText() {
+  const n = pool.length;
+  return n === 0 ? "No ideas match." : n + (n === 1 ? " idea matches" : " ideas match") + (n > 5 ? ". Here are 5 at random." : ".");
+}
+
+function render() {
+  $("results").hidden = false;
+  $("status").textContent = statusText();
+  $("notice").innerHTML = shown.length < 5 ? loosenAdvice() : "";
+  $("cards").innerHTML = shown.map(card).join("");
+  $("shuffle").hidden = pool.length <= 5;
+}
+
+function loosenAdvice() {
+  const base = pool.length;
+  const tries = loosenings(filters).map(([k, v, label]) => {
+    const f = Object.assign({}, filters, { [k]: v });
+    return { label, n: IDEAS.filter(it => matches(it, f, doneSet)).length };
+  }).filter(t => t.n > base);
+  // Keep only the first (smallest) change per filter that helps, then sort by most ideas gained.
+  const seen = new Set(); const best = [];
+  for (const t of tries) { const key = t.label.split(":")[0]; if (!seen.has(key)) { seen.add(key); best.push(t); } }
+  best.sort((a, b) => b.n - a.n);
+  const head = base === 0 ? "Nothing matches these settings." : `Only ${base} ${base === 1 ? "idea matches" : "ideas match"}.`;
+  if (!best.length) return `<div class="notice">${head}</div>`;
+  return `<div class="notice"><strong>${head}</strong> Try loosening one of these:<ul>` +
+    best.map(t => `<li>${esc(t.label)}: ${t.n} ideas</li>`).join("") + "</ul></div>";
+}
+
+function card(it) {
+  const chips = [it.type, it.io];
+  if (it.dogOK) chips.push(/^yes$/i.test(it.dog) ? "Dog-friendly" : "Dog: " + it.dog);
+  if (/^partly/i.test(it.kids)) chips.push("Partly suits both kids");
+  else if (/check/i.test(it.kids)) chips.push(it.kids.replace(/^yes\s*/i, "").replace(/[()]/g, ""));
+  if (isDone(it, doneSet)) chips.push("Done before");
+  else if (it.done) chips.push("Done before: " + it.done);
+  const row = (k, v) => v ? `<dt>${k}</dt><dd>${esc(v)}</dd>` : "";
+  return `<article class="card">
+    <h2>${esc(it.idea)}</h2>
+    <div class="chips">${chips.filter(Boolean).map(c => `<span class="chip">${esc(c)}</span>`).join("")}</div>
+    <dl>${row("Time", it.time)}${row("Cost", it.cost)}${row("Car time", it.car)}${row("Parking", it.parking)}${row("Train", it.train)}</dl>
+    ${it.notes ? `<p class="notes">${esc(it.notes)}</p>` : ""}
+    <div class="actions">
+      <button class="btn" data-act="veto" data-idea="${esc(it.idea)}">Veto</button>
+      <button class="btn primary" data-act="done" data-idea="${esc(it.idea)}">We did this</button>
+    </div>
+  </article>`;
+}
+
+// Swap one card for a match that isn't on screen and hasn't been vetoed.
+function replace(name) {
+  const onScreen = new Set(shown.map(it => it.idea));
+  const spare = shuffle(pool.filter(it => !onScreen.has(it.idea) && !vetoed.has(it.idea)));
+  const i = shown.findIndex(it => it.idea === name);
+  if (i < 0) return;
+  if (spare.length) shown[i] = spare[0]; else shown.splice(i, 1);
+  render();
+  if (!spare.length) $("status").textContent = statusText() + " No more matches to swap in. Tap Shuffle or loosen a filter.";
+}
+
+$("cards").addEventListener("click", e => {
+  const b = e.target.closest("[data-act]"); if (!b) return;
+  const name = b.dataset.idea;
+  if (b.dataset.act === "veto") { vetoed.add(name); replace(name); return; }
+  doneSet.add(name); saveDone();
+  pool = computePool();
+  if (filters.hideDone === "on") { vetoed.add(name); replace(name); } else render();
+  renderDoneList();
+  showToast(`Marked “${name}” as done.`, () => undoDone(name));
+});
+
+function undoDone(name) {
+  doneSet.delete(name); saveDone(); renderDoneList();
+  if (resultsFilters) { pool = computePool(); vetoed.delete(name); render(); }
+}
+
+$("go").addEventListener("click", () => { fresh(false); $("results").scrollIntoView({ behavior: "smooth", block: "start" }); });
+$("shuffle").addEventListener("click", () => fresh(true));
+
+/* ---------- Done list ---------- */
+function renderDoneList() {
+  const fromCsv = IDEAS.filter(it => it.csvDone).map(it => it.idea);
+  const mine = [...doneSet].sort();
+  let html = "";
+  html += mine.length
+    ? "<p><strong>Marked done in this browser</strong> (send me this list to copy into ideas.csv):</p><ul>" +
+      mine.map(n => `<li><span>${esc(n)}</span><button class="btn" data-undo="${esc(n)}">Undo</button></li>`).join("") + "</ul>"
+    : "<p>Nothing marked done in this browser yet.</p>";
+  if (fromCsv.length) html += "<p><strong>Marked done in ideas.csv:</strong> " + fromCsv.map(esc).join(", ") + "</p>";
+  $("doneList").innerHTML = html;
+}
+$("toggleDone").addEventListener("click", () => {
+  const box = $("doneList"); box.hidden = !box.hidden;
+  $("toggleDone").textContent = box.hidden ? "Show my done list" : "Hide my done list";
+  renderDoneList();
+});
+$("doneList").addEventListener("click", e => { const b = e.target.closest("[data-undo]"); if (b) undoDone(b.dataset.undo); });
+
+/* ---------- Toast with Undo ---------- */
+let toastTimer, toastUndo;
+function showToast(msg, undo) {
+  $("toastMsg").textContent = msg; toastUndo = undo; $("toast").hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { $("toast").hidden = true; }, 6000);
+}
+$("toastUndo").addEventListener("click", () => { $("toast").hidden = true; if (toastUndo) toastUndo(); });
+
+paintButtons();
+</script>
+</body>
+</html>
